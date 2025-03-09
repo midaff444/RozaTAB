@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фото с монетками</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #000000, #004d00, #008000, #00b300);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .upgrades-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .upgrade-button {
+            font-size: 18px;
+            background: #1a1a1a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .upgrade-button:hover {
+            background: #333333;
+            transform: translateY(-2px);
+        }
+
+        .upgrade-button.auto {
+            background: #000000;
+        }
+
+        .upgrade-button.auto:hover {
+            background: #1a1a1a;
+        }
+
+        .upgrade-button.multiply {
+            background: #2d2d2d;
+        }
+
+        .upgrade-button.multiply:hover {
+            background: #404040;
+        }
+
+        .upgrade-button.business {
+            background: #1f1f1f;
+            width: 200px;
+        }
+
+        .upgrade-button.business:hover {
+            background: #2a2a2a;
+        }
+
+        .currency {
+            font-size: 24px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .photo-container {
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-container:hover {
+            transform: scale(1.05);
+        }
+
+        .coin-animation {
+            position: absolute;
+            font-size: 24px;
+            color: gold;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+            pointer-events: none;
+            animation: coinFloat 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes coinFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-text {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #666;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .buy-button {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .buy-button:hover {
+            background: #333333;
+        }
+
+        .cancel-button {
+            background: #000000;
+            color: white;
+        }
+
+        .cancel-button:hover {
+            background: #1a1a1a;
+        }
+
+        .disabled {
+            background: #cccccc !important;
+            cursor: not-allowed;
+        }
+
+        .business-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .business-item {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .business-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .business-income {
+            color: #006400;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .business-cost {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .owned {
+            color: #006400;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .withdraw-button {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #ffd700;
+            color: black;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .withdraw-button:hover {
+            background: #ffed4a;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .withdraw-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: translateX(-50%);
+            box-shadow: none;
+        }
+
+        .withdraw-modal .modal-content {
+            background: linear-gradient(135deg, #ffd700, #ffed4a);
+        }
+
+        .withdraw-amount {
+            font-size: 32px;
+            color: #000;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .withdraw-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .coin-rain {
+            position: absolute;
+            color: gold;
+            font-size: 24px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+            animation: coinRain 1.5s linear forwards;
+        }
+
+        @keyframes coinRain {
+            0% {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="withdraw-button" onclick="showWithdrawModal()" id="withdrawButton">Вывести монеты</button>
+    
+    <div class="container">
+        <div class="upgrades-container">
+            <button class="upgrade-button" onclick="showUpgradeModal('click')">Клик +1</button>
+            <button class="upgrade-button auto" onclick="showUpgradeModal('auto')">Авто-клик</button>
+            <button class="upgrade-button multiply" onclick="showUpgradeModal('multiply')">x2 Монеты</button>
+            <button class="upgrade-button business" onclick="showBusinessModal()">Бизнес</button>
+        </div>
+        <div class="currency">Монеты: <span id="coinCount">0</span></div>
+        <div class="photo-container" onclick="addCoin(event)">
+            <img src="https://i.ibb.co/9kX6YXjP/DSCN5827-1.jpg" alt="Фотография">
+        </div>
+    </div>
+
+    <div class="modal" id="upgradeModal">
+        <div class="modal-content">
+            <div class="modal-title">Улучшение</div>
+            <div class="modal-text" id="modalText"></div>
+            <div class="modal-buttons">
+                <button class="modal-button buy-button" id="buyButton" onclick="upgrade()">Купить</button>
+                <button class="modal-button cancel-button" onclick="hideUpgradeModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="businessModal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-title">Бизнес</div>
+            <div class="business-grid" id="businessGrid"></div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel-button" onclick="hideBusinessModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal withdraw-modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-title">Вывод монет</div>
+            <div class="withdraw-amount" id="withdrawAmount">0</div>
+            <div class="modal-text">Вы уверены, что хотите вывести все монеты?</div>
+            <div class="modal-buttons">
+                <button class="modal-button buy-button" onclick="withdrawCoins()">Вывести</button>
+                <button class="modal-button cancel-button" onclick="hideWithdrawModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let coins = 0;
+        let clickValue = 1;
+        let autoClickValue = 0;
+        let multiplier = 1;
+        let currentUpgradeType = 'click';
+        
+        const businesses = {
+            cafe: {
+                name: "Кафе",
+                cost: 100,
+                income: 5,
+                owned: false,
+                description: "Приносит 5 монет в секунду"
+            },
+            shop: {
+                name: "Магазин",
+                cost: 250,
+                income: 15,
+                owned: false,
+                description: "Приносит 15 монет в секунду"
+            },
+            factory: {
+                name: "Фабрика",
+                cost: 1000,
+                income: 50,
+                owned: false,
+                description: "Приносит 50 монет в секунду"
+            },
+            bank: {
+                name: "Банк",
+                cost: 5000,
+                income: 200,
+                owned: false,
+                description: "Приносит 200 монет в секунду"
+            }
+        };
+
+        const upgrades = {
+            click: {
+                cost: 10,
+                description: 'монет - добавить +1 монету за клик',
+                action: () => {
+                    clickValue += 1;
+                    upgrades.click.cost = Math.round(upgrades.click.cost * 1.5);
+                }
+            },
+            auto: {
+                cost: 25,
+                description: 'монет - автоматически добавлять +1 монету каждую секунду',
+                action: () => {
+                    autoClickValue += 1;
+                    upgrades.auto.cost = Math.round(upgrades.auto.cost * 1.8);
+                }
+            },
+            multiply: {
+                cost: 50,
+                description: 'монет - удвоить все получаемые монеты',
+                action: () => {
+                    multiplier *= 2;
+                    upgrades.multiply.cost = Math.round(upgrades.multiply.cost * 2);
+                }
+            }
+        };
+
+        function showBusinessModal() {
+            const modal = document.getElementById('businessModal');
+            const grid = document.getElementById('businessGrid');
+            grid.innerHTML = '';
+
+            for (const [id, business] of Object.entries(businesses)) {
+                const div = document.createElement('div');
+                div.className = 'business-item';
+                div.innerHTML = `
+                    <div class="business-name">${business.name}</div>
+                    <div class="business-income">${business.description}</div>
+                    <div class="business-cost">Стоимость: ${business.cost} монет</div>
+                    ${business.owned ? '<div class="owned">Куплено</div>' : 
+                    `<button class="modal-button buy-button" 
+                        onclick="buyBusiness('${id}')" 
+                        ${coins < business.cost ? 'disabled' : ''}>Купить</button>`}
+                `;
+                grid.appendChild(div);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function hideBusinessModal() {
+            document.getElementById('businessModal').style.display = 'none';
+        }
+
+        function buyBusiness(id) {
+            const business = businesses[id];
+            if (coins >= business.cost && !business.owned) {
+                coins -= business.cost;
+                business.owned = true;
+                document.getElementById('coinCount').textContent = coins;
+                showBusinessModal(); // Обновляем окно
+            }
+        }
+
+        // Доход от бизнеса
+        setInterval(() => {
+            let businessIncome = 0;
+            for (const business of Object.values(businesses)) {
+                if (business.owned) {
+                    businessIncome += business.income;
+                }
+            }
+            if (businessIncome > 0) {
+                coins += businessIncome * multiplier;
+                document.getElementById('coinCount').textContent = coins;
+                updateBuyButton();
+                updateWithdrawButton();
+            }
+        }, 1000);
+
+        // Автоматическое добавление монет от авто-клика
+        setInterval(() => {
+            if (autoClickValue > 0) {
+                coins += autoClickValue * multiplier;
+                document.getElementById('coinCount').textContent = coins;
+                updateBuyButton();
+                updateWithdrawButton();
+            }
+        }, 1000);
+        
+        function createCoinAnimation(x, y) {
+            const coin = document.createElement('div');
+            coin.className = 'coin-animation';
+            coin.textContent = '+' + (clickValue * multiplier);
+            coin.style.left = x + 'px';
+            coin.style.top = y + 'px';
+            document.body.appendChild(coin);
+            
+            setTimeout(() => {
+                coin.remove();
+            }, 1000);
+        }
+
+        function addCoin(event) {
+            coins += clickValue * multiplier;
+            document.getElementById('coinCount').textContent = coins;
+            updateBuyButton();
+            updateWithdrawButton();
+
+            createCoinAnimation(event.clientX, event.clientY);
+        }
+
+        function showUpgradeModal(type) {
+            currentUpgradeType = type;
+            const upgrade = upgrades[type];
+            document.getElementById('upgradeModal').style.display = 'flex';
+            document.getElementById('modalText').innerHTML = `
+                За ${upgrade.cost} ${upgrade.description}<br>
+                ${type === 'auto' ? `Текущий авто-клик: +${autoClickValue}/сек<br>` : ''}
+                ${type === 'multiply' ? `Текущий множитель: x${multiplier}<br>` : ''}
+                ${type === 'click' ? `Текущий бонус: +${clickValue - 1} за клик<br>` : ''}
+            `;
+            updateBuyButton();
+        }
+
+        function hideUpgradeModal() {
+            document.getElementById('upgradeModal').style.display = 'none';
+        }
+
+        function updateBuyButton() {
+            const buyButton = document.getElementById('buyButton');
+            const upgrade = upgrades[currentUpgradeType];
+            if (coins >= upgrade.cost) {
+                buyButton.classList.remove('disabled');
+                buyButton.disabled = false;
+            } else {
+                buyButton.classList.add('disabled');
+                buyButton.disabled = true;
+            }
+        }
+
+        function upgrade() {
+            const upgrade = upgrades[currentUpgradeType];
+            if (coins >= upgrade.cost) {
+                coins -= upgrade.cost;
+                upgrade.action();
+                document.getElementById('coinCount').textContent = coins;
+                showUpgradeModal(currentUpgradeType);
+            }
+        }
+
+        function showWithdrawModal() {
+            const modal = document.getElementById('withdrawModal');
+            document.getElementById('withdrawAmount').textContent = coins;
+            modal.style.display = 'flex';
+        }
+
+        function hideWithdrawModal() {
+            document.getElementById('withdrawModal').style.display = 'none';
+        }
+
+        function createCoinRain() {
+            const container = document.createElement('div');
+            container.className = 'withdraw-animation';
+            document.body.appendChild(container);
+
+            const numberOfCoins = Math.min(100, Math.max(20, Math.floor(coins / 100)));
+            
+            for (let i = 0; i < numberOfCoins; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'coin-rain';
+                    coin.textContent = '🪙';
+                    coin.style.left = Math.random() * 100 + '%';
+                    container.appendChild(coin);
+
+                    setTimeout(() => coin.remove(), 1500);
+                }, i * 50);
+            }
+
+            setTimeout(() => container.remove(), 2500);
+        }
+
+        function withdrawCoins() {
+            if (coins > 0) {
+                createCoinRain();
+                coins = 0;
+                document.getElementById('coinCount').textContent = coins;
+                updateBuyButton();
+                hideWithdrawModal();
+            }
+        }
+
+        // Обновляем состояние кнопки вывода при изменении количества монет
+        function updateWithdrawButton() {
+            const withdrawButton = document.getElementById('withdrawButton');
+            withdrawButton.disabled = coins === 0;
+        }
+
+        // Инициализация состояния кнопки
+        updateWithdrawButton();
+    </script>
+</body>
+</html> 
